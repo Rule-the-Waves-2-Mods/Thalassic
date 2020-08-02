@@ -41,7 +41,7 @@ namespace Thalassic.Registry
                 UpdateKnownRTW2VersionsFromMirrors(mirrors);
             }
 
-            var checksum = GetChecksum(File.ReadAllBytes(Path.Combine(Program.Rtw2ExecutableDirectory, "Clean", "RTW2.exe")));
+            var checksum = GetChecksum(File.ReadAllBytes(Path.Combine(Program.Rtw2ExecutableDirectory, "RTW2.exe")));
             Log.Debug($"Identified checksum {checksum}");
             try
             {

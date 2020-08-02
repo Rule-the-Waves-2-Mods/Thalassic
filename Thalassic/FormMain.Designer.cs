@@ -1,4 +1,5 @@
-﻿using System.Windows.Forms;
+﻿using System.Drawing;
+using System.Windows.Forms;
 
 namespace Thalassic
 {
@@ -64,17 +65,6 @@ namespace Thalassic
             this.ButtonSinglePlayer.UseVisualStyleBackColor = true;
             this.ButtonSinglePlayer.Click += new System.EventHandler(this.ButtonSinglePlayer_Click);
             // 
-            // LabelRtw2Version
-            // 
-            this.LabelRtw2Version.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.LabelRtw2Version.Location = new System.Drawing.Point(469, 336);
-            this.LabelRtw2Version.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
-            this.LabelRtw2Version.Name = "LabelRtw2Version";
-            this.LabelRtw2Version.Size = new System.Drawing.Size(152, 20);
-            this.LabelRtw2Version.TabIndex = 7;
-            this.LabelRtw2Version.Text = "Rule the Waves 2 v#.##.#";
-            this.LabelRtw2Version.TextAlign = System.Drawing.ContentAlignment.TopRight;
-            // 
             // TrackMusicVolume
             // 
             this.TrackMusicVolume.Enabled = false;
@@ -122,14 +112,37 @@ namespace Thalassic
             // 
             // LabelThalassicVersion
             // 
-            this.LabelThalassicVersion.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.LabelThalassicVersion.Location = new System.Drawing.Point(264, 336);
+            this.LabelThalassicVersion.AutoSize = false;
+            this.LabelThalassicVersion.Location = new System.Drawing.Point(500, 318);
             this.LabelThalassicVersion.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             this.LabelThalassicVersion.Name = "LabelThalassicLoaderVersion";
-            this.LabelThalassicVersion.Size = new System.Drawing.Size(152, 20);
+            this.LabelThalassicVersion.Size = new System.Drawing.Size(180, 20);
             this.LabelThalassicVersion.TabIndex = 7;
-            this.LabelThalassicVersion.Text = "Thalassic v#.##.#";
-            this.LabelThalassicVersion.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            this.LabelThalassicVersion.Text = "Thalassic v0.0.1";
+            this.LabelThalassicVersion.TextAlign = System.Drawing.ContentAlignment.BottomRight;
+            //
+            // LabelRtw2Version
+            //
+            this.LabelRtw2Version.AutoSize = false;
+            this.LabelRtw2Version.Location = new System.Drawing.Point(500, 338);
+            this.LabelRtw2Version.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            this.LabelRtw2Version.Name = "LabelRtw2Version";
+            this.LabelRtw2Version.Size = new System.Drawing.Size(180, 20);
+            this.LabelRtw2Version.TabIndex = 7;
+            this.LabelRtw2Version.Text = "Rule the Waves 2 v#.##.#";
+            this.LabelRtw2Version.TextAlign = System.Drawing.ContentAlignment.BottomRight;
+            //
+            // PictureBoxUpdateRtw2
+            //
+            this.PictureBoxUpdateRtw2.Image = global::Thalassic.Properties.Resources.PictureBoxUpdateRtw2;
+            this.PictureBoxUpdateRtw2.Location = new System.Drawing.Point(525, 338);
+            this.PictureBoxUpdateRtw2.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.PictureBoxUpdateRtw2.Name = "PictureBoxUpdateRtw2";
+            this.PictureBoxUpdateRtw2.Size = new System.Drawing.Size(20, 20);
+            this.PictureBoxUpdateRtw2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.PictureBoxUpdateRtw2.TabIndex = 43;
+            this.PictureBoxUpdateRtw2.TabStop = true;
+            this.PictureBoxUpdateRtw2.Click += new System.EventHandler(this.ButtonUpdateRtw2_click);
             // 
             // ListMods
             // 
@@ -142,46 +155,50 @@ namespace Thalassic
             // 
             // LinkForums
             // 
-            this.LinkForums.AutoSize = true;
-            this.LinkForums.Location = new System.Drawing.Point(567, 67);
+            this.LinkForums.AutoSize = false;
+            this.LinkForums.Location = new System.Drawing.Point(500, 68);
             this.LinkForums.Name = "LinkForums";
-            this.LinkForums.Size = new System.Drawing.Size(109, 20);
+            this.LinkForums.Size = new System.Drawing.Size(180, 20);
             this.LinkForums.TabIndex = 33;
             this.LinkForums.TabStop = true;
             this.LinkForums.Text = "Official Forums";
+            this.LinkForums.TextAlign = ContentAlignment.BottomRight;
             this.LinkForums.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.LinkForums_LinkClicked);
             // 
             // LinkReportBug
             // 
-            this.LinkReportBug.AutoSize = true;
-            this.LinkReportBug.Location = new System.Drawing.Point(583, 128);
+            this.LinkReportBug.AutoSize = false;
+            this.LinkReportBug.Location = new System.Drawing.Point(500, 128);
             this.LinkReportBug.Name = "LinkReportBug";
-            this.LinkReportBug.Size = new System.Drawing.Size(96, 20);
+            this.LinkReportBug.Size = new System.Drawing.Size(180, 20);
             this.LinkReportBug.TabIndex = 34;
             this.LinkReportBug.TabStop = true;
             this.LinkReportBug.Text = "Report a Bug";
+            this.LinkReportBug.TextAlign = ContentAlignment.BottomRight;
             this.LinkReportBug.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.LinkVanillaBug_LinkClicked);
             // 
             // LinkSubreddit
             // 
-            this.LinkSubreddit.AutoSize = true;
-            this.LinkSubreddit.Location = new System.Drawing.Point(501, 88);
+            this.LinkSubreddit.AutoSize = false;
+            this.LinkSubreddit.Location = new System.Drawing.Point(500, 88);
             this.LinkSubreddit.Name = "LinkSubreddit";
-            this.LinkSubreddit.Size = new System.Drawing.Size(178, 20);
+            this.LinkSubreddit.Size = new System.Drawing.Size(180, 20);
             this.LinkSubreddit.TabIndex = 35;
             this.LinkSubreddit.TabStop = true;
             this.LinkSubreddit.Text = "Rule the Waves Subreddit";
+            this.LinkSubreddit.TextAlign = ContentAlignment.BottomRight;
             this.LinkSubreddit.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.LinkVanillaSubreddit_LinkClicked);
             // 
             // LinkDiscord
             // 
-            this.LinkDiscord.AutoSize = true;
-            this.LinkDiscord.Location = new System.Drawing.Point(619, 108);
+            this.LinkDiscord.AutoSize = false;
+            this.LinkDiscord.Location = new System.Drawing.Point(500, 108);
             this.LinkDiscord.Name = "LinkDiscord";
-            this.LinkDiscord.Size = new System.Drawing.Size(60, 20);
+            this.LinkDiscord.Size = new System.Drawing.Size(180, 20);
             this.LinkDiscord.TabIndex = 36;
             this.LinkDiscord.TabStop = true;
             this.LinkDiscord.Text = "Discord";
+            this.LinkDiscord.TextAlign = ContentAlignment.BottomRight;
             this.LinkDiscord.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.LinkDiscord_LinkClicked);
             // 
             // LabelMods
@@ -223,18 +240,6 @@ namespace Thalassic
             this.ButtonManageSaves.Text = "Select Game";
             this.ButtonManageSaves.UseVisualStyleBackColor = true;
             this.ButtonManageSaves.Click += new System.EventHandler(this.ButtonManageSaves_Click);
-            // 
-            // PictureBoxUpdateRtw2
-            // 
-            this.PictureBoxUpdateRtw2.Image = ((System.Drawing.Image)(resources.GetObject("PictureBoxUpdateRtw2.Image")));
-            this.PictureBoxUpdateRtw2.Location = new System.Drawing.Point(639, 317);
-            this.PictureBoxUpdateRtw2.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.PictureBoxUpdateRtw2.Name = "PictureBoxUpdateRtw2";
-            this.PictureBoxUpdateRtw2.Size = new System.Drawing.Size(37, 43);
-            this.PictureBoxUpdateRtw2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.PictureBoxUpdateRtw2.TabIndex = 43;
-            this.PictureBoxUpdateRtw2.TabStop = false;
-            this.PictureBoxUpdateRtw2.Click += new System.EventHandler(this.ButtonUpdateRtw2_click);
             // 
             // FormMain
             // 

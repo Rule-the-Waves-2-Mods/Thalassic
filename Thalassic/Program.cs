@@ -26,7 +26,7 @@ namespace Thalassic
             Log.Clear();
             Log.Debug("Start logging");
 
-            if (!File.Exists(Path.Combine(Rtw2ExecutableDirectory, "Clean", "rtw2.exe")))
+            if (!File.Exists(Path.Combine(Rtw2ExecutableDirectory, "rtw2.exe")))
             {
                 Log.Debug("Aurora not installed");
                 var dialog = MessageBox.Show("Rule the Waves 2 not installed. Please purchase, download, and install before using Thalassic.", "Install RTW2", MessageBoxButtons.OK);
