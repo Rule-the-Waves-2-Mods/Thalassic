@@ -1,4 +1,4 @@
-﻿using AuroraLoader.Mods;
+﻿using Thalassic.Mods;
 using Semver;
 using System;
 using System.Collections.Generic;
@@ -6,20 +6,20 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-[assembly: InternalsVisibleTo("AuroraLoaderTest")]
+[assembly: InternalsVisibleTo("ThalassicTest")]
 
-namespace AuroraLoader
+namespace Thalassic
 {
-    public class AuroraInstallation
+    public class Rtw2Installation
     {
-        public readonly AuroraVersion InstalledVersion;
+        public readonly Rtw2Version InstalledVersion;
         public readonly string InstallationPath;
         public string ConnectionString => $"Data Source={Path.Combine(InstallationPath, "AuroraDB.db")}";
 
         // e.g. <install dir>/Aurora/1.8.0
         public string VersionedDirectory => Path.Combine(InstallationPath, "Aurora", InstalledVersion.Version.ToString());
 
-        public AuroraInstallation(AuroraVersion version, string installationPath)
+        public Rtw2Installation(Rtw2Version version, string installationPath)
         {
             if (version == null || installationPath == null)
             {
@@ -30,12 +30,12 @@ namespace AuroraLoader
             InstallationPath = installationPath;
         }
 
-        public List<Process> Launch(IList<ModVersion> modVersions, ModVersion executableMod = null)
+        public List<Process> Launch(IList<ModVersion> modVersions)
         {
             Log.Debug($"Launching from {InstallationPath}");
             var processes = new List<Process>();
 
-            foreach (var mod in modVersions.Where(v => v.Mod.Type == ModType.DATABASE || v.Mod.Type == ModType.THEME))
+            foreach (var mod in modVersions)
             {
                 try
                 {
@@ -47,12 +47,11 @@ namespace AuroraLoader
                 }
             }
 
-            foreach (var modVersion in modVersions.Where(v => v.Mod.Type == ModType.ROOTUTILITY || v.Mod.Type == ModType.UTILITY))
+            foreach (var modVersion in modVersions)
             {
                 try
                 {
                     modVersion.Install(this);
-                    processes.Add(modVersion.Run(this));
                 }
                 catch (Exception e)
                 {
@@ -61,44 +60,20 @@ namespace AuroraLoader
                 }
             }
 
-            if (executableMod != null)
+            var processStartInfo = new ProcessStartInfo()
             {
-                executableMod.Uninstall(this);
-                executableMod.Install(this);
-                var process = executableMod.Run(this);
-                processes.Insert(0, process);
-            }
-            else
-            {
-                var processStartInfo = new ProcessStartInfo()
-                {
-                    WorkingDirectory = InstallationPath,
-                    FileName = "Aurora.exe",
-                    UseShellExecute = true,
-                    CreateNoWindow = true
-                };
-                processes.Insert(0, Process.Start(processStartInfo));
-            }
+                WorkingDirectory = InstallationPath,
+                FileName = "Aurora.exe",
+                UseShellExecute = true,
+                CreateNoWindow = true
+            };
+            processes.Insert(0, Process.Start(processStartInfo));
 
             return processes;
         }
 
-        public void Cleanup(IList<ModVersion> modVersions)
-        {
-            foreach (var mod in modVersions.Where(v => v.Mod.Type == ModType.DATABASE || v.Mod.Type == ModType.THEME))
-            {
-                try
-                {
-                    mod.Uninstall(this);
-                }
-                catch (Exception e)
-                {
-                    Log.Error($"Failed to uninstall {mod.Mod.Name}", e);
-                }
-            }
-        }
-
-        public void UpdateAurora(Dictionary<string, string> aurora_files)
+        // TODO remove installation functionality and just download and run the patch
+        public void UpdateRtw2(Dictionary<string, string> aurora_files)
         {
             if (aurora_files == null)
             {
@@ -137,7 +112,7 @@ namespace AuroraLoader
 
             if (aurora_files.Count > 0)
             {
-                Installer.DownloadAuroraPieces(InstallationPath, aurora_files);
+                Installer.DownloadRtw2Pieces(InstallationPath, aurora_files);
             }
         }
     }

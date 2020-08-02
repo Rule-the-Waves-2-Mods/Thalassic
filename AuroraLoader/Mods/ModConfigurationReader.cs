@@ -4,14 +4,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace AuroraLoader.Mods
+namespace Thalassic.Mods
 {
     public static class ModConfigurationReader
     {
-        public static IEnumerable<AuroraVersion> AuroraVersionsFromString(string versionChecksums)
+        public static IEnumerable<Rtw2Version> Rtw2VersionsFromString(string versionChecksums)
         {
             var settings = FromKeyValueString(versionChecksums);
-            return settings.Select(kvp => new AuroraVersion(SemVersion.Parse(kvp.Key), kvp.Value));
+            return settings.Select(kvp => new Rtw2Version(SemVersion.Parse(kvp.Key), kvp.Value));
         }
 
         public static IList<string> GetMirrorsFromIni()
@@ -19,7 +19,7 @@ namespace AuroraLoader.Mods
             var mirrors = new List<string>();
             try
             {
-                foreach (var rootUrl in File.ReadAllLines(Path.Combine(Program.AuroraLoaderExecutableDirectory, "mirrors.ini")))
+                foreach (var rootUrl in File.ReadAllLines(Path.Combine(Program.Rtw2ExecutableDirectory, "mirrors.ini")))
                 {
                     try
                     {
@@ -33,7 +33,7 @@ namespace AuroraLoader.Mods
             }
             catch (Exception e)
             {
-                Log.Error($"Failed to parse mirror data from {Path.Combine(Program.AuroraLoaderExecutableDirectory, "mirrors.ini")}", e);
+                Log.Error($"Failed to parse mirror data from {Path.Combine(Program.Rtw2ExecutableDirectory, "mirrors.ini")}", e);
             }
 
             return mirrors;

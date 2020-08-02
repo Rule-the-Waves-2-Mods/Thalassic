@@ -1,13 +1,13 @@
 ﻿using System;
 using System.IO;
 
-namespace AuroraLoader
+namespace Thalassic
 {
     static class Log
     {
         public static void Clear()
         {
-            var file = Path.Combine(Program.AuroraLoaderExecutableDirectory, "AuroraLoader.log");
+            var file = Path.Combine(Program.Rtw2ExecutableDirectory, "AuroraLoader.log");
             if (File.Exists(file))
             {
                 File.Delete(file);
@@ -17,7 +17,7 @@ namespace AuroraLoader
         public static void Debug(string message)
         {
             System.Diagnostics.Debug.WriteLine(message);
-            var file = Path.Combine(Program.AuroraLoaderExecutableDirectory, "AuroraLoader.log");
+            var file = Path.Combine(Program.Rtw2ExecutableDirectory, "AuroraLoader.log");
             File.AppendAllText(file, message + "\n");
         }
 

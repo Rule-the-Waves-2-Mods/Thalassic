@@ -1,4 +1,4 @@
-﻿using AuroraLoader.Mods;
+﻿using Thalassic.Mods;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Windows.Forms;
 
-namespace AuroraLoader
+namespace Thalassic
 {
     class Installer
     {
@@ -26,13 +26,13 @@ namespace AuroraLoader
 
         public static void CopyClean(string folder)
         {
-            var clean = Path.Combine(Program.AuroraLoaderExecutableDirectory, "Clean");
+            var clean = Path.Combine(Program.Rtw2ExecutableDirectory, "Clean");
             if (!Directory.Exists(clean))
             {
                 MessageBox.Show("A clean install will be downloaded.");
 
                 var aurora_files = GetLatestAuroraFiles();
-                DownloadAuroraPieces(clean, aurora_files);
+                DownloadRtw2Pieces(clean, aurora_files);
             }
 
             if (Directory.Exists(folder))
@@ -43,7 +43,7 @@ namespace AuroraLoader
             CopyDirectory(clean, folder);
         }
 
-        public static void DownloadAuroraPieces(string installationPath, Dictionary<string, string> aurora_files)
+        public static void DownloadRtw2Pieces(string installationPath, Dictionary<string, string> aurora_files)
         {
             aurora_files.Remove("Version");
 

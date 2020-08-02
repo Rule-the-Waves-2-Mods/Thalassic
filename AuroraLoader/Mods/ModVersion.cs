@@ -9,17 +9,13 @@ using System.Net;
 using System.Text.Json.Serialization;
 using System.Windows.Forms;
 
-namespace AuroraLoader.Mods
+namespace Thalassic.Mods
 {
     public class ModVersion
     {
         [JsonPropertyName("version")]
         [JsonConverter(typeof(SemVersionJsonConverter))]
         public SemVersion Version { get; set; }
-
-        [JsonPropertyName("target_aurora_version")]
-        [JsonConverter(typeof(ModCompatibilityVersionJsonConverter))]
-        public ModCompabitilityVersion TargetAuroraVersion { get; set; }
 
         [JsonPropertyName("download_url")]
         public string DownloadUrl { get; set; }
@@ -89,211 +85,15 @@ namespace AuroraLoader.Mods
             }
         }
 
-        public void Install(AuroraInstallation installation)
+        // TODO Currently only "copy crap into the RTW2 folder"-style mods are supported
+        public void Install(Rtw2Installation installation)
         {
-            Log.Debug($"{Mod.Type}: {Mod.Name} {Version}");
-            if (Mod.Type == ModType.DATABASE)
-            {
-                InstallDbMod(installation);
-            }
-            else if (Mod.Type == ModType.ROOTUTILITY || Mod.Type == ModType.EXECUTABLE || Mod.Type == ModType.THEME)
-            {
-                CopyToFolder(installation.InstallationPath);
-            }
-        }
-
-        public void Uninstall(AuroraInstallation installation)
-        {
-            if (Mod.Type == ModType.THEME)
-            {
-                UninstallThemeMod(installation);
-            }
-            else if (Mod.Type == ModType.DATABASE)
-            {
-                UninstallDbMod(installation);
-            }
-        }
-
-        public Process Run(AuroraInstallation installation)
-        {
-            if (Mod.Type == ModType.UTILITY)
-            {
-                return Run(DownloadPath, Mod.LaunchCommand);
-            }
-            else if (Mod.Type == ModType.ROOTUTILITY || Mod.Type == ModType.EXECUTABLE)
-            {
-                return Run(installation.InstallationPath, Mod.LaunchCommand);
-            }
-            else
-            {
-                throw new InvalidOperationException($"{Mod.Type} does not support being run");
-            }
-        }
-
-        private void InstallDbMod(AuroraInstallation installation)
-        {
-            const string TABLE = "CREATE TABLE IF NOT EXISTS A_THIS_SAVE_IS_MODDED (ModName Text PRIMARY KEY);";
-
-            using (var connection = new SqliteConnection(installation.ConnectionString))
-            {
-                connection.Open();
-                var table = new SqliteCommand(TABLE, connection);
-                table.ExecuteNonQuery();
-
-                var files = Directory.EnumerateFiles(DownloadPath, "*.sql").ToList();
-                try
-                {
-                    var uninstall = files.Single(f => Path.GetFileName(f).Equals("uninstall.sql"));
-                    files.Remove(uninstall);
-                }
-                catch (Exception)
-                {
-                    Log.Debug($"No uninstall for db mod: {Mod.Name}");
-                    connection.Close();
-                    throw new Exception($"No uninstall for db mod: {Mod.Name}");
-                }
-
-                foreach (var file in files)
-                {
-                    var sql = File.ReadAllText(file);
-                    var command = new SqliteCommand(sql, connection);
-                    command.ExecuteNonQuery();
-
-                    sql = $"INSERT INTO A_THIS_SAVE_IS_MODDED(ModName)" +
-                            $"SELECT '{Mod.Name}'" +
-                            $"WHERE NOT EXISTS(SELECT 1 FROM A_THIS_SAVE_IS_MODDED WHERE ModName = '{Mod.Name}');";
-
-                    command = new SqliteCommand(sql, connection);
-                    command.ExecuteNonQuery();
-
-                    Log.Debug($"Installed db mod: {Mod.Name}");
-                }
-
-                connection.Close();
-            }
-        }
-
-        private void UninstallDbMod(AuroraInstallation installation)
-        {
-            var uninstallScript = Path.Combine(DownloadPath, "uninstall.sql");
-            if (!File.Exists(uninstallScript))
-            {
-                throw new Exception($"Db mod {Mod.Name} uninstall.sql not found at {DownloadPath}");
-            }
-
-            using (var connection = new SqliteConnection(installation.ConnectionString))
-            {
-                connection.Open();
-
-                var sql = "SELECT * FROM sqlite_master WHERE name ='A_THIS_SAVE_IS_MODDED' and type='table';";
-                var command = new SqliteCommand(sql, connection);
-                var reader = command.ExecuteReader();
-
-                if (!reader.Read())
-                {
-                    reader.Close();
-                    connection.Close();
-                    Log.Debug($"Not attempting to uninstall {Mod.Name} since {sql} returned no rows");
-                    return;
-                }
-                else
-                {
-                    reader.Close();
-                }
-
-                sql = $"SELECT * FROM A_THIS_SAVE_IS_MODDED WHERE ModName = '{Mod.Name}'";
-                command = new SqliteCommand(sql, connection);
-                reader = command.ExecuteReader();
-
-                while (reader.Read())
-                {
-                    var name = reader[0].ToString();
-                    if (name == null)
-                    {
-                        throw new Exception($"Installed db mod {Mod.Name} not found");
-                    }
-                    else
-                    {
-                        sql = File.ReadAllText(uninstallScript);
-                        sql += $"\nDELETE FROM A_THIS_SAVE_IS_MODDED\nWHERE ModName = '{name}';";
-                        command = new SqliteCommand(sql, connection);
-                        command.ExecuteNonQuery();
-
-                        Log.Debug($"Uninstalled db mod: {name}");
-                    }
-                }
-
-                reader.Close();
-                connection.Close();
-            }
-        }
-
-        private void UninstallThemeMod(AuroraInstallation installation)
-        {
-            foreach (var fileInMod in Directory.EnumerateFiles(DownloadPath, "*.*", SearchOption.AllDirectories))
-            {
-                var out_file = Path.Combine(installation.InstallationPath, Path.GetRelativePath(DownloadPath, fileInMod));
-                if (File.Exists(out_file))
-                {
-                    File.Delete(out_file);
-                }
-            }
-
-            Log.Debug($"Uninstalled theme mod: {Mod.Name}");
-        }
-
-        private void CopyToFolder(string folder)
-        {
+            Log.Debug($"{Mod.Name} {Version}");
             foreach (var file in Directory.EnumerateFiles(DownloadPath, "*.*", SearchOption.AllDirectories).Where(f => !Path.GetFileName(f).Equals("mod.json")))
             {
-                var out_file = Path.Combine(folder, Path.GetRelativePath(DownloadPath, file));
+                var out_file = Path.Combine(installation.InstallationPath, Path.GetRelativePath(DownloadPath, file));
                 File.Copy(file, out_file, true);
             }
-        }
-
-        private static Process Run(string folder, string command)
-        {
-            if (!Directory.Exists(folder))
-            {
-                throw new FileNotFoundException(folder);
-            }
-
-            Log.Debug($"Running command: {command} in folder: {folder}");
-            var pieces = command.Split(' ');
-            var exe = pieces[0];
-            var args = "";
-            if (pieces.Length > 1)
-            {
-                for (int i = 1; i < pieces.Length; i++)
-                {
-                    args += " " + pieces[i];
-                }
-
-                args = args.Substring(1);
-            }
-
-            Log.Debug("Running: " + command);
-            if (!exe.ToLower().Equals("java"))
-            {
-                exe = Path.Combine(folder, exe);
-            }
-
-            var processStartInfo = new ProcessStartInfo()
-            {
-                WorkingDirectory = folder,
-                FileName = exe,
-                Arguments = args,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-            var process = Process.Start(processStartInfo);
-            if (process == null)
-            {
-                throw new Exception($"Failed to launch {processStartInfo.FileName} in {processStartInfo.WorkingDirectory}");
-            }
-
-            return process;
         }
     }
 }

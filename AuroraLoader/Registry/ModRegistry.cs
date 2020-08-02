@@ -1,4 +1,4 @@
-﻿using AuroraLoader.Mods;
+﻿using Thalassic.Mods;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Text.Json;
 
-namespace AuroraLoader.Registry
+namespace Thalassic.Registry
 {
     /// <summary>
     /// Must be initialized by calling Update()
@@ -17,19 +17,14 @@ namespace AuroraLoader.Registry
         // TODO ensure that the list is unique
         public IEnumerable<Mod> Mods { get; private set; }
 
-        public Mod AuroraLoaderMod => Mods.SingleOrDefault(mod => mod.Name == "AuroraLoader");
-
-        private readonly IConfiguration _configuration;
-
         public IList<string> Mirrors { get; private set; }
 
-        public ModRegistry(IConfiguration configuration)
+        public ModRegistry()
         {
-            _configuration = configuration;
             Mirrors = ModConfigurationReader.GetMirrorsFromIni();
         }
 
-        public void Update(AuroraVersion version, bool updateRemote = false, bool updateCache = false)
+        public void Update(bool updateRemote = false, bool updateCache = false)
         {
             Log.Debug($"Updating mod registry, updateRemote={updateRemote} updateCache={updateCache}");
 
@@ -59,7 +54,6 @@ namespace AuroraLoader.Registry
 
             foreach (var mod in mods.ToList())
             {
-                mod.Downloads.RemoveAll(d => !version.CompatibleWith(d.TargetAuroraVersion));
                 if (mod.Downloads.Count == 0)
                 {
                     mods.Remove(mod);
@@ -146,34 +140,6 @@ namespace AuroraLoader.Registry
                 }
             }
             return modsAtMirror;
-        }
-
-        public void UpdateAuroraLoader()
-        {
-            if (AuroraLoaderMod == null)
-            {
-                throw new Exception("AuroraLoader mod not loaded");
-            }
-            AuroraLoaderMod.LatestVersion.Download();
-
-            File.Copy(Path.Combine(AuroraLoaderMod.LatestVersion.DownloadPath, "AuroraLoader.exe"), Path.Combine(Program.AuroraLoaderExecutableDirectory, "AuroraLoader_new.exe"), true);
-            foreach (var file in new string[]
-            {
-                "mod.json",
-                "mirrors.ini",
-                "aurora_versions.ini"
-            })
-            {
-                try
-                {
-                    File.Copy(Path.Combine(AuroraLoaderMod.LatestVersion.DownloadPath, file), Path.Combine(Program.AuroraLoaderExecutableDirectory, file), true);
-                }
-                catch (Exception e)
-                {
-                    Log.Error($"Failed to copy {file} while updating Aurora", e);
-                }
-            }
-            AuroraLoaderMod.UpdateCache();
         }
     }
 }

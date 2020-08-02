@@ -1,7 +1,7 @@
 ﻿using NAudio.Wave;
 using System;
 
-namespace AuroraLoader
+namespace Thalassic
 {
     class Song : IDisposable
     {

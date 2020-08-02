@@ -5,17 +5,17 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace AuroraLoader
+namespace Thalassic
 {
     public partial class FormSaves : Form
     {
         internal string SelectedGameName { get; private set; } = null;
-        private readonly AuroraInstallation _auroraInstallation;
+        private readonly Rtw2Installation _rtw2Installation;
 
-        public FormSaves(AuroraInstallation auroraInstallation)
+        public FormSaves(Rtw2Installation rtw2Installation)
         {
             InitializeComponent();
-            _auroraInstallation = auroraInstallation;
+            _rtw2Installation = rtw2Installation;
         }
 
         private void FormSaves_Load(object sender, EventArgs e)
@@ -53,7 +53,7 @@ namespace AuroraLoader
 
         private void ButtonNewGame_Click(object sender, EventArgs e)
         {
-            var dialog = MessageBox.Show($"Create a new game in a fresh Aurora {_auroraInstallation.InstalledVersion.Version} database called '{TextNewGame.Text}'?", "Create New Game", MessageBoxButtons.YesNo);
+            var dialog = MessageBox.Show($"Create a new game in a fresh RTW2 {_rtw2Installation.InstalledVersion.Version} installation called '{TextNewGame.Text}'?", "Create New Game", MessageBoxButtons.YesNo);
             if (dialog != DialogResult.Yes)
             {
                 return;
@@ -61,7 +61,7 @@ namespace AuroraLoader
 
             Cursor = Cursors.WaitCursor;
 
-            var folder = Path.Combine(Program.AuroraLoaderExecutableDirectory, "Games", TextNewGame.Text);
+            var folder = Path.Combine(Program.Rtw2ExecutableDirectory, "Games", TextNewGame.Text);
             Installer.CopyClean(folder);
             UpdateList();
             TextNewGame.Text = null;
@@ -72,7 +72,7 @@ namespace AuroraLoader
         {
             var games = new List<string>();
 
-            var folder = Path.Combine(Program.AuroraLoaderExecutableDirectory, "Games");
+            var folder = Path.Combine(Program.Rtw2ExecutableDirectory, "Games");
             if (!Directory.Exists(folder))
             {
                 Directory.CreateDirectory(folder);

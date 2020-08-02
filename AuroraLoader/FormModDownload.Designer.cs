@@ -1,4 +1,4 @@
-﻿namespace AuroraLoader
+﻿namespace Thalassic
 {
     partial class FormModDownload
     {
@@ -31,8 +31,8 @@
             this.ManageModslabel = new System.Windows.Forms.Label();
             this.ListViewRegistryMods = new System.Windows.Forms.ListView();
             this.ButtonGetMod = new System.Windows.Forms.Button();
-            this.ButtonChangelog = new System.Windows.Forms.Button();
-            this.ButtonConfigMod = new System.Windows.Forms.Button();
+            this.ButtonModChangelog = new System.Windows.Forms.Button();
+            this.ButtonModReadme = new System.Windows.Forms.Button();
             this.RichTextBoxDescription = new System.Windows.Forms.RichTextBox();
             this.SuspendLayout();
             // 
@@ -67,23 +67,23 @@
             //
             // ButtonConfigMod
             //
-            this.ButtonConfigMod.Location = new System.Drawing.Point(112, 307);
-            this.ButtonConfigMod.Name = "ButtonConfigMod";
-            this.ButtonConfigMod.Size = new System.Drawing.Size(94, 27);
-            this.ButtonConfigMod.TabIndex = 30;
-            this.ButtonConfigMod.Text = "Configure";
-            this.ButtonConfigMod.UseVisualStyleBackColor = true;
-            this.ButtonConfigMod.Click += new System.EventHandler(this.ButtonConfigMod_Click);
+            this.ButtonModReadme.Location = new System.Drawing.Point(112, 307);
+            this.ButtonModReadme.Name = "ButtonConfigMod";
+            this.ButtonModReadme.Size = new System.Drawing.Size(94, 27);
+            this.ButtonModReadme.TabIndex = 30;
+            this.ButtonModReadme.Text = "Configure";
+            this.ButtonModReadme.UseVisualStyleBackColor = true;
+            this.ButtonModReadme.Click += new System.EventHandler(this.ButtonModReadme_click);
             //
             // ButtonChangelog
             //
-            this.ButtonChangelog.Location = new System.Drawing.Point(212, 307);
-            this.ButtonChangelog.Name = "ButtonChangelog";
-            this.ButtonChangelog.Size = new System.Drawing.Size(94, 27);
-            this.ButtonChangelog.TabIndex = 31;
-            this.ButtonChangelog.Text = "Changelog";
-            this.ButtonChangelog.UseVisualStyleBackColor = true;
-            this.ButtonChangelog.Click += new System.EventHandler(this.ButtonChangelog_Click);
+            this.ButtonModChangelog.Location = new System.Drawing.Point(212, 307);
+            this.ButtonModChangelog.Name = "ButtonChangelog";
+            this.ButtonModChangelog.Size = new System.Drawing.Size(94, 27);
+            this.ButtonModChangelog.TabIndex = 31;
+            this.ButtonModChangelog.Text = "Changelog";
+            this.ButtonModChangelog.UseVisualStyleBackColor = true;
+            this.ButtonModChangelog.Click += new System.EventHandler(this.ButtonModChangelog_click);
             // 
             // RichTextBoxDescription
             // 
@@ -99,8 +99,8 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(614, 346);
             this.Controls.Add(this.RichTextBoxDescription);
-            this.Controls.Add(this.ButtonConfigMod);
-            this.Controls.Add(this.ButtonChangelog);
+            this.Controls.Add(this.ButtonModReadme);
+            this.Controls.Add(this.ButtonModChangelog);
             this.Controls.Add(this.ButtonGetMod);
             this.Controls.Add(this.ListViewRegistryMods);
             this.Controls.Add(this.ManageModslabel);
@@ -118,8 +118,8 @@
         private System.Windows.Forms.Label ManageModslabel;
         private System.Windows.Forms.ListView ListViewRegistryMods;
         private System.Windows.Forms.Button ButtonGetMod;
-        private System.Windows.Forms.Button ButtonConfigMod;
-        private System.Windows.Forms.Button ButtonChangelog;
+        private System.Windows.Forms.Button ButtonModReadme;
+        private System.Windows.Forms.Button ButtonModChangelog;
         private System.Windows.Forms.RichTextBox RichTextBoxDescription;
     }
 }

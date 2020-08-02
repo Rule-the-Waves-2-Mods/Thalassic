@@ -1,4 +1,4 @@
-﻿using AuroraLoader.Registry;
+﻿using Thalassic.Registry;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Diagnostics;
@@ -6,34 +6,32 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace AuroraLoader
+namespace Thalassic
 {
     public partial class FormModDownload : Form
     {
-        private readonly IConfiguration _configuration;
-        private readonly AuroraVersionRegistry _auroraVersionRegistry;
+        private readonly Rtw2VersionRegistry _auroraVersionRegistry;
         private readonly ModRegistry _modRegistry;
 
-        public FormModDownload(IConfiguration configuration)
+        public FormModDownload()
         {
             InitializeComponent();
-            _configuration = configuration;
-            _auroraVersionRegistry = new AuroraVersionRegistry(configuration);
-            _modRegistry = new ModRegistry(configuration);
+            _auroraVersionRegistry = new Rtw2VersionRegistry();
+            _modRegistry = new ModRegistry();
         }
 
         private void FormModDownload_Load(object sender, EventArgs e)
         {
             _auroraVersionRegistry.Update(_modRegistry.Mirrors);
-            _modRegistry.Update(_auroraVersionRegistry.CurrentAuroraVersion, true);
+            _modRegistry.Update(true);
             UpdateManageModsListView();
         }
 
         private void ListManageMods_SelectedIndexChanged(object sender, EventArgs e)
         {
             ButtonGetMod.Enabled = false;
-            ButtonConfigMod.Enabled = false;
-            ButtonChangelog.Enabled = false;
+            ButtonModReadme.Enabled = false;
+            ButtonModChangelog.Enabled = false;
 
             if (ListViewRegistryMods.SelectedItems.Count > 0)
             {
@@ -42,33 +40,23 @@ namespace AuroraLoader
                 if (selected.Installed)
                 {
                     ButtonGetMod.Text = "Update";
-                    if (selected.CanBeUpdated(_auroraVersionRegistry.CurrentAuroraVersion))
+                    if (selected.CanBeUpdated)
                     {
                         ButtonGetMod.Enabled = true;
                     }
-                    if (selected.Installed && selected.ConfigurationFile != null)
+                    if (selected.Installed && (selected.ReadmeFile != null || selected.ReadmeUrl != null))
                     {
-                        ButtonConfigMod.Enabled = true;
+                        ButtonModReadme.Enabled = true;
                     }
-                    if (selected.Installed && selected.ChangelogFile != null)
+                    if (selected.Installed && (selected.ChangelogFile != null || selected.ChangelogUrl != null))
                     {
-                        ButtonChangelog.Enabled = true;
+                        ButtonModChangelog.Enabled = true;
                     }
-                }
-                else if (selected.LatestVersionCompatibleWith(_auroraVersionRegistry.CurrentAuroraVersion) != null)
-                {
-                    ButtonGetMod.Text = "Install";
-                    ButtonGetMod.Enabled = true;
-                }
-                else if (selected.LatestVersion != null && !_auroraVersionRegistry.CurrentAuroraVersion.CompatibleWith(selected.LatestVersion.TargetAuroraVersion))
-                {
-                    ButtonGetMod.Text = "Incompatible";
-                    ButtonGetMod.Enabled = false;
                 }
                 else
                 {
                     ButtonGetMod.Text = "Install";
-                    ButtonGetMod.Enabled = false;
+                    ButtonGetMod.Enabled = true;
                 }
             }
             else
@@ -82,7 +70,7 @@ namespace AuroraLoader
         {
             Cursor = Cursors.WaitCursor;
             var mod = _modRegistry.Mods.Single(mod => mod.Name == ListViewRegistryMods.SelectedItems[0].Text);
-            mod.LatestVersionCompatibleWith(_auroraVersionRegistry.CurrentAuroraVersion).Download();
+            mod.LatestVersion.Download();
             UpdateManageModsListView();
             Cursor = Cursors.Default;
         }
@@ -95,12 +83,9 @@ namespace AuroraLoader
             ListViewRegistryMods.FullRowSelect = true;
             ListViewRegistryMods.View = View.Details;
             ListViewRegistryMods.Columns.Add("Name");
-            ListViewRegistryMods.Columns.Add("Status");
-            ListViewRegistryMods.Columns.Add("Type");
             ListViewRegistryMods.Columns.Add("Current");
             ListViewRegistryMods.Columns.Add("Latest");
-            ListViewRegistryMods.Columns.Add("Aurora Compatibility");
-            ///ListViewRegistryMods.Columns.Add("Description");
+            ListViewRegistryMods.Columns.Add("Description");
 
             foreach (var mod in _modRegistry.Mods)
             {
@@ -108,15 +93,12 @@ namespace AuroraLoader
                 {
                     var li = new ListViewItem(new string[] {
                         mod.Name,
-                        mod.Status.ToString(),
-                        mod.Type.ToString(),
                         mod.LatestInstalledVersion?.Version?.ToString() ?? "Not Installed",
-                        mod.LatestInstalledVersionCompatibleWith(_auroraVersionRegistry.CurrentAuroraVersion)?.Version == mod.LatestVersion?.Version
+                        mod.LatestVersion?.Version == mod.LatestVersion?.Version
                             ? "Up to date"
                             : mod.LatestVersion?.Version?.ToString()
                             ?? "-",
-                        mod.LatestVersion.TargetAuroraVersion?.Pretty(),
-                        //mod.Description
+                        mod.Description
                     });
                     ListViewRegistryMods.Items.Add(li);
                 }
@@ -127,101 +109,117 @@ namespace AuroraLoader
             ListViewRegistryMods.EndUpdate();
 
             ButtonGetMod.Enabled = false;
-            ButtonConfigMod.Enabled = false;
-            ButtonChangelog.Enabled = false;
+            ButtonModReadme.Enabled = false;
+            ButtonModChangelog.Enabled = false;
         }
 
-        private void ButtonConfigMod_Click(object sender, EventArgs e)
+        // TODO need to handle URL
+        private void ButtonModChangelog_click(object sender, EventArgs e)
         {
             try
             {
                 var mod = _modRegistry.Mods.Single(mod => mod.Name == ListViewRegistryMods.SelectedItems[0].Text);
-                if (mod.ModFolder == null || mod.ConfigurationFile == null)
-                {
-                    throw new Exception("Invalid mod selected for configuration");
-                }
-
-                var pieces = mod.ConfigurationFile.Split(' ');
-                var exe = pieces[0];
-                var args = "";
-                if (pieces.Length > 1)
-                {
-                    for (int i = 1; i < pieces.Length; i++)
-                    {
-                        args += " " + pieces[i];
-                    }
-
-                    args = args.Substring(1);
-                }
-
-                var modVersion = mod.LatestInstalledVersionCompatibleWith(_auroraVersionRegistry.CurrentAuroraVersion);
-                Log.Debug($"{mod.Name} config file: run {exe} in {modVersion.DownloadPath} with args {args}");
-                if (!File.Exists(Path.Combine(modVersion.DownloadPath, exe)))
-                {
-                    MessageBox.Show($"Couldn't launch {Path.Combine(modVersion.DownloadPath, exe)} - make sure {Path.Combine(mod.ModFolder, "mod.json")} is correctly configured.");
-                    return;
-                }
-                var info = new ProcessStartInfo()
-                {
-                    WorkingDirectory = modVersion.DownloadPath,
-                    FileName = exe,
-                    Arguments = args,
-                    UseShellExecute = true,
-                    CreateNoWindow = true
-                };
-
-                Process.Start(info);
-            }
-            catch (Exception exc)
-            {
-                Log.Error($"Failed while trying to open {ListViewRegistryMods.SelectedItems[0]} config file", exc);
-            }
-        }
-
-        private void ButtonChangelog_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                var mod = _modRegistry.Mods.Single(mod => mod.Name == ListViewRegistryMods.SelectedItems[0].Text);
-                if (mod.ModFolder == null || mod.ChangelogFile == null)
+                if (mod.ModFolder == null || (string.IsNullOrWhiteSpace(mod.ChangelogFile) && string.IsNullOrWhiteSpace(mod.ChangelogUrl)))
                 {
                     throw new Exception("Invalid mod selected for changelog");
                 }
 
-                var pieces = mod.ChangelogFile.Split(' ');
-                var exe = pieces[0];
-                var args = "";
-                if (pieces.Length > 1)
+                if (!string.IsNullOrWhiteSpace(mod.ChangelogFile))
                 {
-                    for (int i = 1; i < pieces.Length; i++)
+                    var pieces = mod.ChangelogFile.Split(' ');
+                    var exe = pieces[0];
+                    var args = "";
+                    if (pieces.Length > 1)
                     {
-                        args += " " + pieces[i];
+                        for (int i = 1; i < pieces.Length; i++)
+                        {
+                            args += " " + pieces[i];
+                        }
+
+                        args = args.Substring(1);
                     }
 
-                    args = args.Substring(1);
-                }
+                    var modVersion = mod.LatestInstalledVersion;
+                    Log.Debug($"{mod.Name} changelog file: run {exe} in {modVersion.DownloadPath} with args {args}");
+                    if (!File.Exists(Path.Combine(modVersion.DownloadPath, exe)))
+                    {
+                        MessageBox.Show($"Couldn't launch {Path.Combine(modVersion.DownloadPath, exe)} - make sure {Path.Combine(mod.ModFolder, "mod.json")} is correctly configured.");
+                        return;
+                    }
+                    var info = new ProcessStartInfo()
+                    {
+                        WorkingDirectory = modVersion.DownloadPath,
+                        FileName = exe,
+                        Arguments = args,
+                        UseShellExecute = true,
+                        CreateNoWindow = true
+                    };
 
-                var modVersion = mod.LatestInstalledVersionCompatibleWith(_auroraVersionRegistry.CurrentAuroraVersion);
-                Log.Debug($"{mod.Name} changelog file: run {exe} in {modVersion.DownloadPath} with args {args}");
-                if (!File.Exists(Path.Combine(modVersion.DownloadPath, exe)))
-                {
-                    MessageBox.Show($"Couldn't launch {Path.Combine(modVersion.DownloadPath, exe)} - make sure {Path.Combine(mod.ModFolder, "mod.json")} is correctly configured.");
-                    return;
+                    Process.Start(info);
                 }
-                var info = new ProcessStartInfo()
+                else if (!string.IsNullOrWhiteSpace(mod.ChangelogUrl))
                 {
-                    WorkingDirectory = modVersion.DownloadPath,
-                    FileName = exe,
-                    Arguments = args,
-                    UseShellExecute = true,
-                    CreateNoWindow = true
-                };
-
-                Process.Start(info);
+                    // TODO
+                }
             }
             catch (Exception exc)
             {
-                Log.Error($"Failed while trying to open {ListViewRegistryMods.SelectedItems[0]} changelog file", exc);
+                Log.Error($"Failed while trying to open {ListViewRegistryMods.SelectedItems[0]} changelog", exc);
+            }
+        }
+
+        // TODO need to handle URL
+        private void ButtonModReadme_click(object sender, EventArgs e)
+        {
+            try
+            {
+                var mod = _modRegistry.Mods.Single(mod => mod.Name == ListViewRegistryMods.SelectedItems[0].Text);
+                if (mod.ModFolder == null || (string.IsNullOrWhiteSpace(mod.ReadmeFile) && string.IsNullOrWhiteSpace(mod.ReadmeUrl)))
+                {
+                    throw new Exception("Invalid mod selected for readme");
+                }
+
+                if (!string.IsNullOrWhiteSpace(mod.ReadmeFile))
+                {
+                    var pieces = mod.ReadmeFile.Split(' ');
+                    var exe = pieces[0];
+                    var args = "";
+                    if (pieces.Length > 1)
+                    {
+                        for (int i = 1; i < pieces.Length; i++)
+                        {
+                            args += " " + pieces[i];
+                        }
+
+                        args = args.Substring(1);
+                    }
+
+                    var modVersion = mod.LatestInstalledVersion;
+                    Log.Debug($"{mod.Name} readme file: run {exe} in {modVersion.DownloadPath} with args {args}");
+                    if (!File.Exists(Path.Combine(modVersion.DownloadPath, exe)))
+                    {
+                        MessageBox.Show($"Couldn't launch {Path.Combine(modVersion.DownloadPath, exe)} - make sure {Path.Combine(mod.ModFolder, "mod.json")} is correctly configured.");
+                        return;
+                    }
+                    var info = new ProcessStartInfo()
+                    {
+                        WorkingDirectory = modVersion.DownloadPath,
+                        FileName = exe,
+                        Arguments = args,
+                        UseShellExecute = true,
+                        CreateNoWindow = true
+                    };
+
+                    Process.Start(info);
+                }
+                else if (!string.IsNullOrWhiteSpace(mod.ReadmeUrl))
+                {
+                    // TODO
+                }
+            }
+            catch (Exception exc)
+            {
+                Log.Error($"Failed while trying to open {ListViewRegistryMods.SelectedItems[0]} readme", exc);
             }
         }
     }

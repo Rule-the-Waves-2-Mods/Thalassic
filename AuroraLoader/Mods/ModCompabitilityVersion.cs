@@ -1,4 +1,4 @@
-﻿namespace AuroraLoader.Mods
+﻿namespace Thalassic.Mods
 {
     public class ModCompabitilityVersion
     {

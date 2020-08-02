@@ -1,4 +1,4 @@
-﻿namespace AuroraLoader
+﻿namespace Thalassic
 {
     partial class FormSaves
     {

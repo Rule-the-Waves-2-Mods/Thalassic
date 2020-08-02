@@ -1,21 +1,18 @@
-using AuroraLoader.Mods;
-using AuroraLoader.Registry;
-using Microsoft.Extensions.Configuration;
+using Thalassic.Registry;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using System.Threading;
 using System.Windows.Forms;
 
-namespace AuroraLoader
+namespace Thalassic
 {
     static class Program
     {
-        public static readonly string AuroraLoaderExecutableDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
-        public static readonly string ModDirectory = Path.Combine(AuroraLoaderExecutableDirectory, "Mods");
-        public static readonly string CacheDirectory = Path.Combine(Path.GetTempPath(), "auroraloader_cache");
+        public static readonly string Rtw2ExecutableDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
+        public static readonly string ModDirectory = Path.Combine(Rtw2ExecutableDirectory, "Mods");
+        public static readonly string CacheDirectory = Path.Combine(Path.GetTempPath(), "thalassic_cache");
 
         /// <summary>
         /// The main entry point for the application.
@@ -29,72 +26,26 @@ namespace AuroraLoader
             Log.Clear();
             Log.Debug("Start logging");
 
-            if (!File.Exists(Path.Combine(AuroraLoaderExecutableDirectory, "Clean", "aurora.exe")))
+            if (!File.Exists(Path.Combine(Rtw2ExecutableDirectory, "Clean", "rtw2.exe")))
             {
                 Log.Debug("Aurora not installed");
-                var dialog = MessageBox.Show("Aurora not installed. Download and install? This might take a while.", "Install Aurora", MessageBoxButtons.YesNo);
-                if (dialog == DialogResult.Yes)
-                {
-                    InstallAurora();
-                }
-                else
+                var dialog = MessageBox.Show("Rule the Waves 2 not installed. Please purchase, download, and install before using Thalassic.", "Install RTW2", MessageBoxButtons.OK);
+                if (dialog == DialogResult.OK)
                 {
                     Application.Exit();
                     return;
                 }
             }
 
-            PrepareModDirectory();
-
-            // TODO would love to set up dependency injection
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile(path: "appsettings.json", optional: true, reloadOnChange: true)
-                .Build();
-            var auroraVersionRegistry = new AuroraVersionRegistry(configuration);
-            var modRegistry = new ModRegistry(configuration);
-            Log.Debug("Launching main form");
-            Application.Run(new FormMain(configuration, auroraVersionRegistry, modRegistry));
-        }
-
-        private static void InstallAurora()
-        {
-            var thread = new Thread(() =>
-            {
-                var aurora_files = Installer.GetLatestAuroraFiles();
-                Installer.DownloadAuroraPieces(Path.Combine(AuroraLoaderExecutableDirectory, "Clean"), aurora_files);
-            });
-            thread.Start();
-
-            var progress = new FormProgress(thread) { Text = "Installing Aurora" };
-            progress.ShowDialog();
-        }
-
-        internal static void PrepareModDirectory()
-        {
             if (!Directory.Exists(ModDirectory))
             {
                 Directory.CreateDirectory(ModDirectory);
             }
 
-            // Load the mod configuration for AuroraLoader itself
-            if (File.Exists(Path.Combine(AuroraLoaderExecutableDirectory, "mod.json")))
-            {
-                var raw = File.ReadAllText(Path.Combine(AuroraLoaderExecutableDirectory, "mod.json"));
-                var auroraLoader = Mod.DeserializeMod(raw);
-
-                if (auroraLoader.Name != "AuroraLoader")
-                {
-                    throw new Exception(Path.Combine(AuroraLoaderExecutableDirectory, "mod.json") + " does not belong to AuroraLoader.");
-                }
-
-                if (!Directory.Exists(auroraLoader.LatestVersion.DownloadPath))
-                {
-                    Directory.CreateDirectory(auroraLoader.LatestVersion.DownloadPath);
-                    File.Copy(Path.Combine(AuroraLoaderExecutableDirectory, "mod.json"), Path.Combine(auroraLoader.ModFolder, "mod.json"), true);
-                    File.Copy(Path.Combine(AuroraLoaderExecutableDirectory, "AuroraLoader.exe"), Path.Combine(auroraLoader.LatestVersion.DownloadPath, "AuroraLoader.Exe"), true);
-                }
-            }
+            var rtw2VersionRegistry = new Rtw2VersionRegistry();
+            var modRegistry = new ModRegistry();
+            Log.Debug("Launching main form");
+            Application.Run(new FormMain(rtw2VersionRegistry, modRegistry));
         }
 
         public static void OpenBrowser(string url)

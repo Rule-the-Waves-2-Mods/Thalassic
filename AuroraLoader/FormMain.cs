@@ -1,5 +1,5 @@
-﻿using AuroraLoader.Mods;
-using AuroraLoader.Registry;
+﻿using Thalassic.Mods;
+using Thalassic.Registry;
 using Microsoft.Extensions.Configuration;
 using Semver;
 using System;
@@ -12,25 +12,23 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace AuroraLoader
+namespace Thalassic
 {
     public partial class FormMain : Form
     {
-        private Thread auroraThread = null;
-        private AuroraInstallation auroraInstallation;
+        private Thread rtw2Thread = null;
+        private Rtw2Installation rtw2Installation;
 
-        private readonly IConfiguration _configuration;
-        private readonly AuroraVersionRegistry _auroraVersionRegistry;
+        private readonly Rtw2VersionRegistry _rtw2VersionRegistry;
         private readonly ModRegistry _modRegistry;
 
         private FormModDownload _modManagementWindow;
         private FormSaves _saveManagementWindow;
 
-        public FormMain(IConfiguration configuration, AuroraVersionRegistry auroraVersionRegistry, ModRegistry modRegistry)
+        public FormMain(Rtw2VersionRegistry rtw2VersionRegistry, ModRegistry modRegistry)
         {
             InitializeComponent();
-            _configuration = configuration;
-            _auroraVersionRegistry = auroraVersionRegistry;
+            _rtw2VersionRegistry = rtw2VersionRegistry;
             _modRegistry = modRegistry;
         }
 
@@ -38,36 +36,30 @@ namespace AuroraLoader
         {
             try
             {
-                Icon = new Icon(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Aurora.ico"));
+                Icon = new Icon(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Thalassic.ico"));
             }
             catch
             {
                 Log.Debug("Failed to load icon");
             }
 
-            _ = MessageBox.Show(new Form { TopMost = true }, "AuroraLoader will check for updates and then launch, this might take a moment.");
+            _ = MessageBox.Show(new Form { TopMost = true }, "Thalassic will check for updates and then launch, this might take a moment.");
             Cursor = Cursors.WaitCursor;
 
-            CheckEnableMods.Enabled = true;
-            ComboSelectExecutableMod.Enabled = false;
-            ListDatabaseMods.Enabled = false;
-            CheckEnablePoweruserMods.Enabled = false;
-            ButtonMultiplayer.Enabled = false;
-
             // Only check mirrors for new versions at app startup
-            _auroraVersionRegistry.Update(_modRegistry.Mirrors);
-            auroraInstallation = new AuroraInstallation(_auroraVersionRegistry.CurrentAuroraVersion, Path.Combine(Program.AuroraLoaderExecutableDirectory, "Clean"));
+            _rtw2VersionRegistry.Update(_modRegistry.Mirrors);
+            rtw2Installation = new Rtw2Installation(_rtw2VersionRegistry.CurrentRtw2Version, Path.Combine(Program.Rtw2ExecutableDirectory, "Clean"));
 
-            _modRegistry.Update(_auroraVersionRegistry.CurrentAuroraVersion, true);
-            RefreshAuroraInstallData();
+            _modRegistry.Update(true);
+            RefreshRtw2InstallData();
             UpdateListViews();
 
             Cursor = Cursors.Default;
         }
 
-        private void UpdateAurora()
+        private void UpdateRtw2()
         {
-            var dialog = MessageBox.Show($"Aurora v{_auroraVersionRegistry.AuroraVersions.Max()?.Version} is available. Download now? This is safe and won't affect your existing games.", "Download new Aurora version", MessageBoxButtons.YesNo);
+            var dialog = MessageBox.Show($"RTW2 v{_rtw2VersionRegistry.Rtw2Versions.Max()?.Version} is available. Download now? This is safe and won't affect your existing games.", "Download new Aurora version", MessageBoxButtons.YesNo);
             if (dialog != DialogResult.Yes)
             {
                 return;
@@ -75,123 +67,66 @@ namespace AuroraLoader
 
             try
             {
+                // TODO
                 var thread = new Thread(() =>
                 {
                     var aurora_files = Installer.GetLatestAuroraFiles();
-                    var clean = new AuroraInstallation(_auroraVersionRegistry.CurrentAuroraVersion, Path.Combine(Program.AuroraLoaderExecutableDirectory, "Clean"));
-                    clean.UpdateAurora(aurora_files);
+                    var clean = new Rtw2Installation(_rtw2VersionRegistry.CurrentRtw2Version, Path.Combine(Program.Rtw2ExecutableDirectory, "Clean"));
+                    clean.UpdateRtw2(aurora_files);
                 });
                 thread.Start();
 
-                var progress = new FormProgress(thread) { Text = "Updating Aurora" };
+                var progress = new FormProgress(thread) { Text = "Launching Rule the Waves 2 patcher" };
                 progress.ShowDialog();
-                RefreshAuroraInstallData();
-                MessageBox.Show($"Update complete - you can now start new games using Aurora {_auroraVersionRegistry.CurrentAuroraVersion.Version}!");
+                RefreshRtw2InstallData();
+                MessageBox.Show($"Update complete - you can now start new games using RTW2 {_rtw2VersionRegistry.CurrentRtw2Version.Version}!");
             }
             catch (Exception ecp)
             {
-                Log.Error("Failed to update Aurora", ecp);
-                Program.OpenBrowser(@"http://aurora2.pentarch.org/index.php?board=276.0");
+                Log.Error("Failed to update RTW2", ecp);
+                Program.OpenBrowser(@"https://nws-online.proboards.com/board/27/rule-waves-2");
             }
         }
 
-        private void UpdateLoader()
+        private void ButtonUpdateRtw2_click(object sender, EventArgs e) { UpdateRtw2(); }
+
+        private void SetCanUpdateRtw2(bool update)
         {
-            var dialog = MessageBox.Show($"AuroraLoader version {_modRegistry.AuroraLoaderMod.LatestVersion.Version} available. Update?", "Update Loader", MessageBoxButtons.YesNo);
-            if (dialog != DialogResult.Yes)
-            {
-                return;
-            }
-
-            try
-            {
-                var thread = new Thread(() => _modRegistry.UpdateAuroraLoader());
-                thread.Start();
-                var progress = new FormProgress(thread);
-                progress.ShowDialog();
-                _modRegistry.AuroraLoaderMod.UpdateCache();
-                Process.Start(Path.Combine(Program.AuroraLoaderExecutableDirectory, "update_loader.bat"));
-                Application.Exit();
-                return;
-            }
-            catch (Exception exc)
-            {
-                Log.Error("Failed to update AuroraLoader", exc);
-                MessageBox.Show("Update failed.");
-            }
-        }
-
-        private void ButtonUpdateAuroraLoader_Click(object sender, EventArgs e) { UpdateLoader(); }
-
-        private void ButtonUpdateAurora_Click(object sender, EventArgs e) { UpdateAurora(); }
-
-        private void SetCanUpdateAurora(bool update)
-        {
-            PictureBoxUpdateAurora.Enabled = update;
-            PictureBoxUpdateAurora.Visible = update;
-        }
-
-        private void SetCanUpdateLoader(bool update)
-        {
-            PictureBoxUpdateLoader.Enabled = update;
-            PictureBoxUpdateLoader.Visible = update;
+            PictureBoxUpdateRtw2.Enabled = update;
+            PictureBoxUpdateRtw2.Visible = update;
         }
 
         /// <summary>
         /// Sets current install's version and checksum, and whether the update button is enabled
         /// </summary>
-        private void RefreshAuroraInstallData()
+        private void RefreshRtw2InstallData()
         {
-            _auroraVersionRegistry.Update();
-            if (_auroraVersionRegistry.CurrentAuroraVersion == null)
+            _rtw2VersionRegistry.Update();
+            if (_rtw2VersionRegistry.CurrentRtw2Version == null)
             {
-                LabelAuroraVersion.Text = "Aurora version: Unknown";
+                LabelRtw2Version.Text = "RTW2 version: Unknown";
             }
             else
             {
                 // Show only the checksum if we can't identify the version of Aurora
-                if (_auroraVersionRegistry.CurrentAuroraVersion.Version == SemVersion.Parse("1.0.0"))
+                if (_rtw2VersionRegistry.CurrentRtw2Version.Version == SemVersion.Parse("1.0.0"))
                 {
-                    LabelAuroraVersion.Text = $"Aurora.exe ({_auroraVersionRegistry.CurrentAuroraVersion.Checksum})";
+                    LabelRtw2Version.Text = $"RTW2.exe ({_rtw2VersionRegistry.CurrentRtw2Version.Checksum})";
                 }
                 // Default to showing the most recent installed Aurora version
                 else
                 {
-                    LabelAuroraVersion.Text = $"Aurora v{_auroraVersionRegistry.CurrentAuroraVersion.Version} ({_auroraVersionRegistry.CurrentAuroraVersion.Checksum})";
+                    LabelRtw2Version.Text = $"RTW2 v{_rtw2VersionRegistry.CurrentRtw2Version.Version} ({_rtw2VersionRegistry.CurrentRtw2Version.Checksum})";
                 }
 
-                if (_modRegistry.AuroraLoaderMod.LatestInstalledVersion != null)
+                if (_rtw2VersionRegistry.CurrentRtw2Version.Version.CompareTo(_rtw2VersionRegistry.Rtw2Versions.Max()?.Version) < 0)
                 {
-                    LabelAuroraLoaderVersion.Text = $"Loader v{_modRegistry.AuroraLoaderMod.LatestInstalledVersion.Version}";
-                }
-
-                if (_auroraVersionRegistry.CurrentAuroraVersion.Version.CompareTo(_auroraVersionRegistry.AuroraVersions.Max()?.Version) < 0)
-                {
-                    SetCanUpdateAurora(true);
+                    SetCanUpdateRtw2(true);
                 }
                 else
                 {
-                    SetCanUpdateAurora(false);
+                    SetCanUpdateRtw2(false);
                 }
-            }
-
-            try
-            {
-                var auroraLoaderMod = _modRegistry.Mods.Single(mod => mod.Name == "AuroraLoader");
-                if (auroraLoaderMod.CanBeUpdated(auroraInstallation.InstalledVersion))
-                {
-                    SetCanUpdateLoader(true);
-
-                    SetCanUpdateAurora(false);
-                }
-                else
-                {
-                    SetCanUpdateLoader(false);
-                }
-            }
-            catch (Exception exc)
-            {
-                Log.Error("Unable to check AuroraLoader updates", exc);
             }
         }
 
@@ -202,95 +137,8 @@ namespace AuroraLoader
         /// </summary>
         private void UpdateListViews()
         {
-            // TODO retain checked state
-            ListUtilities.Items.Clear();
-            ListUtilities.Items.AddRange(_modRegistry.Mods.Where(mod =>
-                (mod.Type == ModType.UTILITY || mod.Type == ModType.ROOTUTILITY)
-                && mod.Name != "AuroraLoader"
-                && mod.LatestInstalledVersionCompatibleWith(auroraInstallation.InstalledVersion) != null)
-                .Select(mod => mod.Name).ToArray());
-
-            ListDatabaseMods.Items.Clear();
-            ListDatabaseMods.Items.AddRange(_modRegistry.Mods.Where(
-                mod => mod.Type == ModType.DATABASE
-                && GetAllowedModStatuses().Contains(mod.Status)
-                && mod.LatestInstalledVersionCompatibleWith(auroraInstallation.InstalledVersion) != null)
-                .Select(mod => mod.Name).ToArray());
-
-            string currentlySelectedExecutableModName = (string)ComboSelectExecutableMod.SelectedItem;
-            ComboSelectExecutableMod.Items.Clear();
-            ComboSelectExecutableMod.Items.Add("Base game");
-
-            foreach (var mod in _modRegistry.Mods.Where(
-                mod => mod.Type == ModType.EXECUTABLE
-                && GetAllowedModStatuses().Contains(mod.Status)
-                && mod.LatestInstalledVersionCompatibleWith(auroraInstallation.InstalledVersion) != null))
-            {
-                ComboSelectExecutableMod.Items.Add(mod.Name);
-            }
-            if (!string.IsNullOrWhiteSpace(currentlySelectedExecutableModName) && ComboSelectExecutableMod.Items.Contains(currentlySelectedExecutableModName))
-            {
-                ComboSelectExecutableMod.SelectedIndex = ComboSelectExecutableMod.Items.IndexOf(currentlySelectedExecutableModName);
-            }
-            else if (ComboSelectExecutableMod.Items.Count > 0)
-            {
-                ComboSelectExecutableMod.SelectedIndex = 0;
-            }
-        }
-
-        private IList<ModStatus> GetAllowedModStatuses()
-        {
-            var approvedStatuses = new List<ModStatus>();
-            if (CheckEnableMods.Checked)
-            {
-                approvedStatuses.Add(ModStatus.APPROVED);
-                approvedStatuses.Add(ModStatus.PUBLIC);
-            }
-            if (CheckEnablePoweruserMods.Checked)
-            {
-                approvedStatuses.Add(ModStatus.POWERUSER);
-            }
-            return approvedStatuses;
-        }
-
-        private void CheckEnableMods_CheckChanged(object sender, EventArgs e)
-        {
-            if (CheckEnableMods.Checked)
-            {
-                var result = MessageBox.Show("By using game mods you agree to not post bug reports to the official Aurora bug report channels.", "Warning!", MessageBoxButtons.OKCancel);
-                if (result == DialogResult.OK)
-                {
-                    LinkReportBug.Enabled = false;
-
-                    ComboSelectExecutableMod.Enabled = true;
-                    ListDatabaseMods.Enabled = true;
-                    CheckEnablePoweruserMods.Enabled = true;
-                }
-                else
-                {
-                    CheckEnableMods.Checked = false;
-                }
-            }
-            if (!CheckEnableMods.Checked)
-            {
-                LinkReportBug.Enabled = true;
-
-                ComboSelectExecutableMod.SelectedItem = ComboSelectExecutableMod.Items[0];
-                for (int i = 0; i < ListDatabaseMods.Items.Count; i++)
-                {
-                    ListDatabaseMods.SetItemChecked(i, false);
-                }
-
-                ComboSelectExecutableMod.Enabled = false;
-                ListDatabaseMods.Enabled = false;
-                CheckEnablePoweruserMods.Enabled = false;
-            }
-            UpdateListViews();
-        }
-
-        private void CheckEnablePoweruserMod_CheckChanged(object sender, EventArgs e)
-        {
-            UpdateListViews();
+            ListMods.Items.Clear();
+            ListMods.Items.AddRange(_modRegistry.Mods.Select(mod => mod.Name).ToArray());
         }
 
         private void ButtonSinglePlayer_Click(object sender, EventArgs e)
@@ -302,20 +150,20 @@ namespace AuroraLoader
         {
             lock (this)
             {
-                if (auroraThread != null)
+                if (rtw2Thread != null)
                 {
-                    MessageBox.Show("Already running Aurora.");
+                    MessageBox.Show("Already running Rule the Waves 2.");
                     return;
                 }
             }
 
-            if (CheckEnableMusic.Checked && !Directory.Exists(Path.Combine(auroraInstallation.InstallationPath, "Music")))
+            if (CheckEnableMusic.Checked && !Directory.Exists(Path.Combine(rtw2Installation.InstallationPath, "Music")))
             {
                 var thread = new Thread(() =>
                 {
                     Log.Debug("Installing music");
                     var aurora_files = Installer.GetLatestAuroraFiles();
-                    Installer.DownloadAuroraPieces(auroraInstallation.InstallationPath, new Dictionary<string, string> { { "Music", aurora_files["Music"] } });
+                    Installer.DownloadRtw2Pieces(rtw2Installation.InstallationPath, new Dictionary<string, string> { { "Music", aurora_files["Music"] } });
                 });
                 thread.Start();
 
@@ -324,35 +172,27 @@ namespace AuroraLoader
             }
 
             ButtonSinglePlayer.Enabled = false;
-            SetCanUpdateLoader(false);
-            SetCanUpdateAurora(false);
+            SetCanUpdateRtw2(false);
 
             var modVersions = _modRegistry.Mods.Where(mod =>
-            (ListDatabaseMods.CheckedItems != null && ListDatabaseMods.CheckedItems.Contains(mod.Name))
-            || (ListUtilities.CheckedItems != null && ListUtilities.CheckedItems.Contains(mod.Name)))
-                .Select(mod => mod.LatestInstalledVersionCompatibleWith(auroraInstallation.InstalledVersion)).ToList();
+            (ListMods.CheckedItems != null && ListMods.CheckedItems.Contains(mod.Name)))
+                .Select(mod => mod.LatestInstalledVersion).ToList();
 
-            ModVersion executableModVersion = null;
-            if (ComboSelectExecutableMod.SelectedItem != null && (string)ComboSelectExecutableMod.SelectedItem != "Base game")
-            {
-                executableModVersion = _modRegistry.Mods.Single(mod => mod.Name == (string)ComboSelectExecutableMod.SelectedItem).LatestInstalledVersionCompatibleWith(auroraInstallation.InstalledVersion);
-            }
-
-            var processes = auroraInstallation.Launch(modVersions, executableModVersion);
-            auroraThread = new Thread(() => RunGame(processes, modVersions))
+            var processes = rtw2Installation.Launch(modVersions);
+            rtw2Thread = new Thread(() => RunGame(processes, modVersions))
             {
                 IsBackground = true
             };
 
-            auroraThread.Start();
+            rtw2Thread.Start();
         }
 
         private void RunGame(List<Process> processes, List<ModVersion> modVersions)
         {
-            var aurora = processes[0];
+            var rtw2 = processes[0];
 
             var songs = new List<Song>();
-            var folder = Path.Combine(auroraInstallation.InstallationPath, "Music");
+            var folder = Path.Combine(rtw2Installation.InstallationPath, "Music");
             if (Directory.Exists(folder))
             {
                 foreach (var mp3 in Directory.EnumerateFiles(folder, "*.mp3", SearchOption.AllDirectories))
@@ -363,7 +203,7 @@ namespace AuroraLoader
 
             var rng = new Random();
 
-            while (!aurora.HasExited)
+            while (!rtw2.HasExited)
             {
                 if (CheckEnableMusic.Checked && songs.Count > 0)
                 {
@@ -409,16 +249,14 @@ namespace AuroraLoader
 
             Invoke((MethodInvoker)delegate
             {
-                auroraInstallation.Cleanup(modVersions);
-                Log.Debug("Game ended, cleaned up instalation");
-
+                Log.Debug("Game ended");
                 ButtonSinglePlayer.Enabled = true;
-                RefreshAuroraInstallData();
+                RefreshRtw2InstallData();
             });
 
             lock (this)
             {
-                auroraThread = null;
+                rtw2Thread = null;
             }
         }
 
@@ -434,18 +272,13 @@ namespace AuroraLoader
             }
         }
 
-        private void ListUtilityMods_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            // TODO display description
-        }
-
         private void ButtonReadme_Click(object sender, EventArgs e)
         {
-            if (File.Exists(Path.Combine(Program.AuroraLoaderExecutableDirectory, "README.md")))
+            if (File.Exists(Path.Combine(Program.Rtw2ExecutableDirectory, "README.md")))
             {
                 Process.Start(new ProcessStartInfo()
                 {
-                    WorkingDirectory = Program.AuroraLoaderExecutableDirectory,
+                    WorkingDirectory = Program.Rtw2ExecutableDirectory,
                     FileName = "README.md",
                     UseShellExecute = true,
                     CreateNoWindow = true
@@ -453,17 +286,17 @@ namespace AuroraLoader
             }
             else
             {
-                Program.OpenBrowser("https://github.com/Aurora-Modders/AuroraLoader/blob/master/README.md");
+                Program.OpenBrowser("https://github.com/Rule-the-Waves-2-Mods/Thalassic/blob/master/README.md");
             }
         }
 
         private void ButtonChangelog_Click(object sender, EventArgs e)
         {
-            if (File.Exists(Path.Combine(Program.AuroraLoaderExecutableDirectory, "CHANGELOG.md")))
+            if (File.Exists(Path.Combine(Program.Rtw2ExecutableDirectory, "CHANGELOG.md")))
             {
                 Process.Start(new ProcessStartInfo()
                 {
-                    WorkingDirectory = Program.AuroraLoaderExecutableDirectory,
+                    WorkingDirectory = Program.Rtw2ExecutableDirectory,
                     FileName = "CHANGELOG.md",
                     UseShellExecute = true,
                     CreateNoWindow = true
@@ -471,33 +304,28 @@ namespace AuroraLoader
             }
             else
             {
-                Program.OpenBrowser("https://github.com/Aurora-Modders/AuroraLoader/blob/master/CHANGELOG.md");
+                Program.OpenBrowser("https://github.com/Rule-the-Waves-2-Mods/Thalassic/blob/master/CHANGELOG.md");
             }
-        }
-
-        private void LinkModSubreddit_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            Program.OpenBrowser(@"https://www.reddit.com/r/aurora4x_mods/");
         }
 
         private void LinkVanillaSubreddit_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Program.OpenBrowser(@"https://www.reddit.com/r/aurora/");
+            Program.OpenBrowser(@"https://www.reddit.com/r/RuleTheWaves/");
         }
 
         private void LinkForums_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Program.OpenBrowser(@"http://aurora2.pentarch.org/");
+            Program.OpenBrowser(@"https://nws-online.proboards.com/board/27/rule-waves-2");
         }
 
         private void LinkVanillaBug_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Program.OpenBrowser(@"http://aurora2.pentarch.org/index.php?board=273.0");
+            Program.OpenBrowser(@"https://nws-online.proboards.com/board/30/official-rtw2-bug-report-thread");
         }
 
         private void LinkDiscord_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Program.OpenBrowser(@"https://discordapp.com/channels/314031775892373504/701885084646506628");
+            Program.OpenBrowser(@"https://discord.com/channels/586214065760763925/586564542218108931");
         }
 
         private void ButtonManageMods_Click(object sender, EventArgs e)
@@ -506,7 +334,7 @@ namespace AuroraLoader
             {
                 _modManagementWindow.Close();
             }
-            _modManagementWindow = new FormModDownload(_configuration);
+            _modManagementWindow = new FormModDownload();
             _modManagementWindow.ShowDialog();
             UpdateListViews();
         }
@@ -517,22 +345,22 @@ namespace AuroraLoader
             {
                 _saveManagementWindow.Close();
             }
-            _saveManagementWindow = new FormSaves(auroraInstallation);
+            _saveManagementWindow = new FormSaves(rtw2Installation);
             _saveManagementWindow.ShowDialog();
 
             var name = _saveManagementWindow.SelectedGameName;
             if (name != null)
             {
-                var exe = Path.Combine(Program.AuroraLoaderExecutableDirectory, "Games", name, "Aurora.exe");
+                var exe = Path.Combine(Program.Rtw2ExecutableDirectory, "Games", name, "RTW2.exe");
                 var bytes = File.ReadAllBytes(exe);
                 var checksum = Program.GetChecksum(bytes);
-                var version = _auroraVersionRegistry.AuroraVersions.First(v => v.Checksum == checksum);
-                auroraInstallation = new AuroraInstallation(version, Path.GetDirectoryName(exe));
+                var version = _rtw2VersionRegistry.Rtw2Versions.First(v => v.Checksum == checksum);
+                rtw2Installation = new Rtw2Installation(version, Path.GetDirectoryName(exe));
 
                 UpdateListViews();
-                RefreshAuroraInstallData();
+                RefreshRtw2InstallData();
 
-                SelectedSavelabel.Text = $"Game: {name} (Aurora v{auroraInstallation.InstalledVersion.Version})";
+                SelectedSavelabel.Text = $"Game: {name} (RTW2 v{rtw2Installation.InstalledVersion.Version})";
                 ButtonSinglePlayer.Enabled = true;
             }
             else
