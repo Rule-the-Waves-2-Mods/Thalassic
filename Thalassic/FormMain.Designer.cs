@@ -37,7 +37,7 @@ namespace Thalassic
             this.CheckEnableMusic = new System.Windows.Forms.CheckBox();
             this.ButtonReadme = new System.Windows.Forms.Button();
             this.ButtonChangelog = new System.Windows.Forms.Button();
-            this.LabelAuroraLoaderVersion = new System.Windows.Forms.Label();
+            this.LabelThalassicVersion = new System.Windows.Forms.Label();
             this.ListMods = new System.Windows.Forms.CheckedListBox();
             this.LinkForums = new System.Windows.Forms.LinkLabel();
             this.LinkReportBug = new System.Windows.Forms.LinkLabel();
@@ -72,7 +72,7 @@ namespace Thalassic
             this.LabelRtw2Version.Name = "LabelRtw2Version";
             this.LabelRtw2Version.Size = new System.Drawing.Size(152, 20);
             this.LabelRtw2Version.TabIndex = 7;
-            this.LabelRtw2Version.Text = "Aurora v#.##.#";
+            this.LabelRtw2Version.Text = "Rule the Waves 2 v#.##.#";
             this.LabelRtw2Version.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
             // TrackMusicVolume
@@ -120,16 +120,16 @@ namespace Thalassic
             this.ButtonChangelog.UseVisualStyleBackColor = true;
             this.ButtonChangelog.Click += new System.EventHandler(this.ButtonChangelog_Click);
             // 
-            // LabelAuroraLoaderVersion
+            // LabelThalassicVersion
             // 
-            this.LabelAuroraLoaderVersion.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.LabelAuroraLoaderVersion.Location = new System.Drawing.Point(264, 336);
-            this.LabelAuroraLoaderVersion.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
-            this.LabelAuroraLoaderVersion.Name = "LabelAuroraLoaderVersion";
-            this.LabelAuroraLoaderVersion.Size = new System.Drawing.Size(152, 20);
-            this.LabelAuroraLoaderVersion.TabIndex = 7;
-            this.LabelAuroraLoaderVersion.Text = "Thalassic v#.##.#";
-            this.LabelAuroraLoaderVersion.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            this.LabelThalassicVersion.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.LabelThalassicVersion.Location = new System.Drawing.Point(264, 336);
+            this.LabelThalassicVersion.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            this.LabelThalassicVersion.Name = "LabelThalassicLoaderVersion";
+            this.LabelThalassicVersion.Size = new System.Drawing.Size(152, 20);
+            this.LabelThalassicVersion.TabIndex = 7;
+            this.LabelThalassicVersion.Text = "Thalassic v#.##.#";
+            this.LabelThalassicVersion.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
             // ListMods
             // 
@@ -251,7 +251,7 @@ namespace Thalassic
             this.Controls.Add(this.LinkReportBug);
             this.Controls.Add(this.LinkForums);
             this.Controls.Add(this.ListMods);
-            this.Controls.Add(this.LabelAuroraLoaderVersion);
+            this.Controls.Add(this.LabelThalassicVersion);
             this.Controls.Add(this.ButtonReadme);
             this.Controls.Add(this.ButtonChangelog);
             this.Controls.Add(this.CheckEnableMusic);
@@ -279,7 +279,7 @@ namespace Thalassic
         private System.Windows.Forms.CheckBox CheckEnableMusic;
         private System.Windows.Forms.Button ButtonReadme;
         private System.Windows.Forms.Button ButtonChangelog;
-        private System.Windows.Forms.Label LabelAuroraLoaderVersion;
+        private System.Windows.Forms.Label LabelThalassicVersion;
         private System.Windows.Forms.CheckedListBox ListMods;
         private System.Windows.Forms.LinkLabel LinkForums;
         private System.Windows.Forms.LinkLabel LinkReportBug;

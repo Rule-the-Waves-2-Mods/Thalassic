@@ -10,19 +10,19 @@ namespace Thalassic
 {
     public partial class FormModDownload : Form
     {
-        private readonly Rtw2VersionRegistry _auroraVersionRegistry;
+        private readonly Rtw2VersionRegistry _rtw2VersionRegistry;
         private readonly ModRegistry _modRegistry;
 
         public FormModDownload()
         {
             InitializeComponent();
-            _auroraVersionRegistry = new Rtw2VersionRegistry();
+            _rtw2VersionRegistry = new Rtw2VersionRegistry();
             _modRegistry = new ModRegistry();
         }
 
         private void FormModDownload_Load(object sender, EventArgs e)
         {
-            _auroraVersionRegistry.Update(_modRegistry.Mirrors);
+            _rtw2VersionRegistry.Update(_modRegistry.Mirrors);
             _modRegistry.Update(true);
             UpdateManageModsListView();
         }

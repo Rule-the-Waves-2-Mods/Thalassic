@@ -75,7 +75,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Resources\Aurora.ico" />
+    <None Include="Resources\Thalassic.ico" />
   </ItemGroup>
 
   <ItemGroup>

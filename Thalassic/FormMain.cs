@@ -59,7 +59,7 @@ namespace Thalassic
 
         private void UpdateRtw2()
         {
-            var dialog = MessageBox.Show($"RTW2 v{_rtw2VersionRegistry.Rtw2Versions.Max()?.Version} is available. Download now? This is safe and won't affect your existing games.", "Download new Aurora version", MessageBoxButtons.YesNo);
+            var dialog = MessageBox.Show($"RTW2 v{_rtw2VersionRegistry.Rtw2Versions.Max()?.Version} is available. Download now? This is safe and won't affect your existing games.", "Download new RTW2 version", MessageBoxButtons.YesNo);
             if (dialog != DialogResult.Yes)
             {
                 return;
@@ -70,9 +70,9 @@ namespace Thalassic
                 // TODO
                 var thread = new Thread(() =>
                 {
-                    var aurora_files = Installer.GetLatestAuroraFiles();
+                    var rtw2_files = Installer.GetLatestRtw2Patch();
                     var clean = new Rtw2Installation(_rtw2VersionRegistry.CurrentRtw2Version, Path.Combine(Program.Rtw2ExecutableDirectory, "Clean"));
-                    clean.UpdateRtw2(aurora_files);
+                    clean.UpdateRtw2(rtw2_files);
                 });
                 thread.Start();
 
@@ -108,12 +108,12 @@ namespace Thalassic
             }
             else
             {
-                // Show only the checksum if we can't identify the version of Aurora
+                // Show only the checksum if we can't identify the version of RTW2
                 if (_rtw2VersionRegistry.CurrentRtw2Version.Version == SemVersion.Parse("1.0.0"))
                 {
                     LabelRtw2Version.Text = $"RTW2.exe ({_rtw2VersionRegistry.CurrentRtw2Version.Checksum})";
                 }
-                // Default to showing the most recent installed Aurora version
+                // Default to showing the most recent installed RTW2 version
                 else
                 {
                     LabelRtw2Version.Text = $"RTW2 v{_rtw2VersionRegistry.CurrentRtw2Version.Version} ({_rtw2VersionRegistry.CurrentRtw2Version.Checksum})";
@@ -162,8 +162,8 @@ namespace Thalassic
                 var thread = new Thread(() =>
                 {
                     Log.Debug("Installing music");
-                    var aurora_files = Installer.GetLatestAuroraFiles();
-                    Installer.DownloadRtw2Pieces(rtw2Installation.InstallationPath, new Dictionary<string, string> { { "Music", aurora_files["Music"] } });
+                    var rtw2_files = Installer.GetLatestRtw2Patch();
+                    Installer.DownloadRtw2Pieces(rtw2Installation.InstallationPath, new Dictionary<string, string> { { "Music", rtw2_files["Music"] } });
                 });
                 thread.Start();
 

@@ -11,7 +11,7 @@ namespace Thalassic
 {
     class Installer
     {
-        public static Dictionary<string, string> GetLatestAuroraFiles()
+        public static Dictionary<string, string> GetLatestRtw2Patch()
         {
             // TODO mirrors
             var url = "https://raw.githubusercontent.com/Aurora-Modders/AuroraRegistry/master/aurora_files.ini";
@@ -31,7 +31,7 @@ namespace Thalassic
             {
                 MessageBox.Show("A clean install will be downloaded.");
 
-                var aurora_files = GetLatestAuroraFiles();
+                var aurora_files = GetLatestRtw2Patch();
                 DownloadRtw2Pieces(clean, aurora_files);
             }
 

@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AuroraLoader\Thalassic.csproj" />
+    <ProjectReference Include="..\Thalassic\Thalassic.csproj" />
   </ItemGroup>
 
 </Project>

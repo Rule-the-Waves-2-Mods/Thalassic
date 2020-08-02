@@ -7,7 +7,7 @@ namespace Thalassic
     {
         public static void Clear()
         {
-            var file = Path.Combine(Program.Rtw2ExecutableDirectory, "AuroraLoader.log");
+            var file = Path.Combine(Program.Rtw2ExecutableDirectory, "Thalassic.log");
             if (File.Exists(file))
             {
                 File.Delete(file);
@@ -17,7 +17,7 @@ namespace Thalassic
         public static void Debug(string message)
         {
             System.Diagnostics.Debug.WriteLine(message);
-            var file = Path.Combine(Program.Rtw2ExecutableDirectory, "AuroraLoader.log");
+            var file = Path.Combine(Program.Rtw2ExecutableDirectory, "Thalassic.log");
             File.AppendAllText(file, message + "\n");
         }
 
